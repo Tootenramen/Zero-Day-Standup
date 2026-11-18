@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zero-Day Standup - Sudo Sam live</title>
+<meta name="description" content="A full comedy-club night in your browser: Sudo Sam does original on-call, password and phishing-prince stand-up with a synthesised crowd you can cheer, groan at or heckle.">
+<meta property="og:title" content="Zero-Day Standup - Sudo Sam live">
+<meta property="og:description" content="Original cyber and engineer stand-up, a synthesised crowd, and a heckler mode that fires back. One night only, in your browser.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://tootenramen.github.io/Zero-Day-Standup/docs/hero.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Zero-Day Standup - Sudo Sam live">
+<meta name="twitter:description" content="Original cyber and engineer stand-up, a synthesised crowd, and a heckler mode that fires back.">
+<meta name="twitter:image" content="https://tootenramen.github.io/Zero-Day-Standup/docs/hero.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237a1a2e'/%3E%3Ccircle cx='16' cy='13' r='6' fill='%23ffd23f'/%3E%3Crect x='14' y='18' width='4' height='9' fill='%2319f0d0'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12060a; --ink2:#1d0a10; --brick:#7a1a2e; --brick-d:#3a0912; --mortar:#2a0810;
+  --yellow:#ffd23f; --teal:#19f0d0; --cream:#fff1d0; --muted:#e6c9b2; --orange:#ff8a3d;
+  --heat:.55;
+  --display:"Bungee","Impact","Arial Black",system-ui,sans-serif;
+  --body:"Rubik",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--cream);font-family:var(--body);-webkit-text-size-adjust:100%}
+body{min-height:100svh}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px;border-radius:6px}
+.app{display:grid;grid-template-rows:auto minmax(440px,1fr) auto auto;min-height:100svh}
+@media (min-width:900px) and (min-height:700px){.app{height:100svh;min-height:0;overflow:hidden}}
+
+/* marquee */
+.marquee{position:relative;background:linear-gradient(#2b0a12,#1b060b);border-bottom:3px solid var(--yellow);overflow:hidden;height:46px;display:flex;align-items:center}
+.marquee::before,.marquee::after{content:"";position:absolute;left:0;right:0;height:6px;background:radial-gradient(circle,var(--yellow) 0 2px,transparent 3px) 0 50%/18px 6px repeat-x;animation:bulbs 1.1s steps(2) infinite}
+.marquee::before{top:1px}.marquee::after{bottom:1px;animation-delay:.55s}
+.mq-track{display:flex;width:max-content;animation:mq 34s linear infinite;white-space:nowrap}
+.mq-group{display:flex;align-items:center;gap:28px;padding-right:28px;font-family:var(--display);font-size:20px;letter-spacing:.06em;color:var(--yellow);text-transform:uppercase}
+.mq-group b{color:var(--cream);font-weight:400}
+.mq-group i{color:var(--teal);font-style:normal}
+@keyframes mq{to{transform:translateX(-50%)}}
+@keyframes bulbs{50%{opacity:.35}}
+
+/* stage */
+.stage{position:relative;overflow:hidden;isolation:isolate;min-height:440px;background:#2a0810}
+.wall{position:absolute;inset:0;z-index:0;background:
+  radial-gradient(ellipse 60% 70% at 50% 40%,rgba(255,210,63,.20),transparent 70%),
+  linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.05) 35%,rgba(0,0,0,.55) 100%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Crect width='120' height='60' fill='%232a0810'/%3E%3Crect x='2' y='2' width='56' height='26' fill='%237a1a2e'/%3E%3Crect x='62' y='2' width='56' height='26' fill='%23691527'/%3E%3Crect x='-28' y='32' width='56' height='26' fill='%23852236'/%3E%3Crect x='32' y='32' width='56' height='26' fill='%23701829'/%3E%3Crect x='92' y='32' width='56' height='26' fill='%237a1a2e'/%3E%3C/svg%3E") 0 0/120px 60px;
+}
+.floor{position:absolute;left:0;right:0;bottom:0;height:24%;z-index:1;background:linear-gradient(180deg,#2a1208 0%,#150804 100%);border-top:4px solid #090304}
+.floor::before{content:"";position:absolute;left:50%;top:-30px;width:58%;height:90px;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(255,210,63,calc(.28 + var(--heat)*.2)),transparent 70%)}
+.curtain{position:absolute;top:0;bottom:0;width:15%;z-index:2;background:repeating-linear-gradient(90deg,#4a0a1a 0 14px,#2c0610 14px 28px,#5b0f23 28px 40px);box-shadow:inset 0 0 40px rgba(0,0,0,.8)}
+.curtain.l{left:0;box-shadow:inset -30px 0 40px rgba(0,0,0,.8)}
+.curtain.r{right:0;box-shadow:inset 30px 0 40px rgba(0,0,0,.8)}
+.spot{position:absolute;left:50%;top:-6%;height:104%;width:min(62%,780px);transform:translateX(-50%);z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,226,120,calc(.45 + var(--heat)*.2)),rgba(255,210,63,.07) 92%);
+  clip-path:polygon(43% 0,57% 0,100% 100%,0 100%);filter:blur(2px);mix-blend-mode:screen;transition:opacity .4s}
+.stage.beat .spot{opacity:.55}
+.sign{position:absolute;z-index:3;left:50%;top:14px;transform:translateX(-50%);text-align:center;pointer-events:none}
+.sign::before,.sign::after{content:"";position:absolute;top:-16px;width:2px;height:20px;background:#0a0a0a}
+.sign::before{left:12%}.sign::after{right:12%}
+.neon{margin:0;display:inline-flex;gap:.45em;align-items:baseline;padding:6px 20px 8px;border:3px solid var(--teal);border-radius:14px;
+  font-family:var(--display);font-weight:400;font-size:clamp(20px,3.3vw,46px);letter-spacing:.04em;line-height:1.05;color:#e9fffb;
+  text-shadow:0 0 3px #fff,0 0 9px var(--teal),0 0 22px var(--teal),0 0 46px #08b49c;
+  box-shadow:0 0 12px var(--teal),0 0 36px rgba(25,240,208,.45),inset 0 0 14px rgba(25,240,208,.4);background:rgba(2,24,22,.55)}
+.neon span{white-space:nowrap}
+.neon .f{animation:flick 5.5s infinite}
+.sub{display:block;margin-top:8px;font-family:var(--display);font-size:clamp(10px,1.1vw,14px);letter-spacing:.3em;color:var(--yellow);text-shadow:0 0 8px rgba(255,210,63,.8)}
+@keyframes flick{0%,18%,22%,62%,64%,100%{opacity:1}20%{opacity:.35}63%{opacity:.55}}
+
+.comic{position:absolute;z-index:4;left:50%;bottom:9%;height:68%;width:auto;aspect-ratio:330/530;transform:translateX(-50%);overflow:visible;filter:drop-shadow(0 0 12px rgba(255,210,63,.35))}
+#comic *{transform-box:view-box}
+#upper{animation:breathe 3.4s ease-in-out infinite}
+#head,#armL,#armR,#foreL,#foreR{transition:transform .35s cubic-bezier(.3,1.35,.5,1)}
+#head{transform-origin:150px 152px}
+#armL{transform-origin:104px 184px}#foreL{transform-origin:94px 250px}
+#armR{transform-origin:196px 184px}#foreR{transform-origin:206px 250px}
+#dots{opacity:0;transition:opacity .2s}
+@keyframes breathe{50%{transform:translateY(2.5px)}}
+@keyframes nod{50%{transform:translateY(2px) rotate(1.5deg)}}
+@keyframes shake{25%{transform:translateY(-4px)}75%{transform:translateY(2px)}}
+.talking #head{animation:nod .42s ease-in-out infinite}
+.g-tilt #head{transform:rotate(-11deg)}
+.g-grab #armR{transform:rotate(-30deg)}.g-grab #foreR{transform:rotate(-112deg)}.g-grab #head{transform:rotate(3deg)}
+.g-shrug #head{transform:translateY(-7px)}
+.g-shrug #armL{transform:rotate(24deg)}.g-shrug #foreL{transform:rotate(58deg)}
+.g-shrug #armR{transform:rotate(-24deg)}.g-shrug #foreR{transform:rotate(-58deg)}
+.g-beat #head{transform:rotate(6deg) translateY(1px)}.g-beat #dots{opacity:1}
+.g-laugh #upper{animation:shake .24s linear infinite}.g-laugh #head{transform:rotate(-8deg)}
+.g-bow #upper{transform:rotate(13deg);transform-origin:150px 300px;animation:none}.g-bow #head{transform:rotate(10deg)}
+
+.caption{position:absolute;z-index:7;left:50%;bottom:calc(21% + 4px);transform:translateX(-50%);width:min(94%,1040px);text-align:center;pointer-events:none}
+.caption p{display:inline-block;margin:0;padding:10px 20px 12px;max-width:100%;border-radius:12px;background:rgba(10,3,6,.82);border:2px solid rgba(255,210,63,.35);
+  font-size:clamp(18px,2.35vw,32px);font-weight:500;line-height:1.28;color:var(--cream);text-wrap:balance;opacity:0;transition:opacity .15s}
+.caption p.show{opacity:1}
+.caption p[data-role=punch]{color:var(--yellow);font-weight:700;border-color:var(--yellow);box-shadow:0 0 24px rgba(255,210,63,.3)}
+.caption p[data-role=tag]{color:#bffcf3;font-style:italic;border-color:rgba(25,240,208,.5)}
+.caption p[data-role=heckle]{color:var(--orange);border-color:var(--orange)}
+
+.crowd{position:absolute;z-index:6;left:0;right:0;bottom:0;height:23%;pointer-events:none}
+.crowd svg{width:100%;height:100%;display:block}
+.p{animation:bob 2.8s ease-in-out infinite;animation-delay:var(--d)}
+.crowd.laugh .p{animation:bobl .36s ease-in-out infinite;animation-delay:calc(var(--d)/6)}
+.crowd.groan .p{animation:slump 1.2s ease-in-out infinite;animation-delay:calc(var(--d)/4)}
+.crowd.clap .p{animation:bobl .22s ease-in-out infinite;animation-delay:calc(var(--d)/8)}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@keyframes bobl{50%{transform:translateY(-12px) rotate(2deg)}}
+@keyframes slump{50%{transform:translateY(6px) rotate(-2deg)}}
+.pops{position:absolute;z-index:8;left:0;right:0;bottom:40%;height:0;pointer-events:none}
+.pop{position:absolute;font-family:var(--display);font-size:clamp(18px,2.4vw,34px);color:var(--yellow);text-shadow:0 2px 0 #000,0 0 14px rgba(255,210,63,.7);animation:rise 1.7s ease-out forwards;white-space:nowrap}
+.pop.groanw{color:var(--teal);text-shadow:0 2px 0 #000,0 0 14px rgba(25,240,208,.6)}
+.pop.heck{color:var(--orange);font-family:var(--body);font-weight:700;font-size:clamp(14px,1.5vw,20px);background:rgba(10,3,6,.85);padding:6px 12px;border-radius:14px 14px 14px 2px;border:2px solid var(--orange);text-shadow:none;animation:rise 3.2s ease-out forwards;max-width:46vw;white-space:normal}
+@keyframes rise{0%{opacity:0;transform:translateY(10px) rotate(-4deg) scale(.8)}12%{opacity:1;transform:translateY(-6px) rotate(3deg) scale(1.1)}80%{opacity:1}100%{opacity:0;transform:translateY(-70px) rotate(-3deg)}}
+
+/* intro poster */
+.intro{position:absolute;inset:0;z-index:20;display:flex;align-items:center;padding:0 clamp(16px,6vw,110px);background:linear-gradient(90deg,rgba(10,3,6,.9) 0%,rgba(10,3,6,.55) 42%,rgba(10,3,6,0) 70%)}
+.intro[hidden]{display:none}
+.poster{max-width:520px;transform:rotate(-1.5deg)}
+.kicker{margin:0 0 10px;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);font-weight:700}
+.bill{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(34px,5.4vw,84px);line-height:.95;text-transform:uppercase;color:var(--cream);text-shadow:4px 4px 0 var(--brick)}
+.bill span{display:block;color:var(--yellow);text-shadow:4px 4px 0 var(--brick),0 0 30px rgba(255,210,63,.4)}
+.lede{margin:14px 0 20px;font-size:clamp(15px,1.45vw,19px);line-height:1.4;color:var(--muted);max-width:40ch}
+.btn{cursor:pointer;border:0;border-radius:10px;padding:11px 18px;font-weight:700;letter-spacing:.02em;background:var(--yellow);color:#1a0a06;box-shadow:0 4px 0 #a07a00;transition:transform .08s,box-shadow .08s,filter .15s}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #a07a00}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn.big{font-family:var(--display);font-weight:400;font-size:clamp(18px,2vw,26px);padding:14px 28px;text-transform:uppercase;animation:pulse 2s ease-in-out infinite}
+.btn.ghost{background:transparent;color:var(--cream);box-shadow:inset 0 0 0 2px rgba(255,241,208,.45)}
+.btn.ghost:hover{background:rgba(255,241,208,.1)}
+.btn.teal{background:var(--teal);color:#042a25;box-shadow:0 4px 0 #0a8e7b}
+.btn.hot{background:var(--orange);color:#2a0d02;box-shadow:0 4px 0 #a14a14}
+.btn.sm{padding:8px 13px;font-size:14px}
+@keyframes pulse{50%{box-shadow:0 4px 0 #a07a00,0 0 0 8px rgba(255,210,63,.18)}}
+.setpick{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.fine{margin:14px 0 0;font-size:12.5px;color:var(--muted)}
+
+/* dock */
+.dock{position:relative;z-index:30;background:linear-gradient(#1b070c,#12060a);border-top:3px solid var(--yellow);padding:12px clamp(12px,2vw,28px) 10px;display:grid;grid-template-columns:auto auto minmax(240px,1fr) auto;gap:14px clamp(14px,2vw,30px);align-items:end}
+.grp{display:flex;flex-direction:column;gap:6px;min-width:0}
+.grp>h2{margin:0;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);font-weight:700}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{cursor:pointer;border:2px solid rgba(255,241,208,.4);background:transparent;border-radius:999px;padding:6px 13px;font-size:14px;font-weight:500;color:var(--cream)}
+.chip:hover{border-color:var(--yellow)}
+.chip[aria-pressed=true]{background:var(--yellow);color:#1a0a06;border-color:var(--yellow);font-weight:700}
+.meterwrap{display:flex;align-items:center;gap:10px}
+.leds{display:flex;gap:3px}.leds i{width:9px;height:24px;border-radius:2px;background:#3a1a22;transition:background .15s}
+.leds i.on{background:var(--teal)}.leds i.on.y{background:var(--yellow)}.leds i.on.o{background:var(--orange)}
+.mlabel{font-family:var(--display);font-size:15px;min-width:5.4em;color:var(--yellow);text-transform:uppercase}
+.heckle{display:flex;gap:8px}
+.heckle input{flex:1;min-width:0;background:#0b0306;border:2px solid rgba(255,241,208,.4);border-radius:10px;padding:9px 12px;color:var(--cream);font-size:15px}
+.heckle input::placeholder{color:#cdb09a}
+.heckle input:focus{border-color:var(--teal)}
+.right{position:relative}
+.voice{position:absolute;right:0;bottom:calc(100% + 10px);width:min(340px,92vw);background:#1d0a10;border:2px solid var(--yellow);border-radius:14px;padding:14px;display:none;flex-direction:column;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.7)}
+.voice.open{display:flex}
+.voice label{display:grid;grid-template-columns:90px 1fr 40px;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.voice label.sel{grid-template-columns:90px 1fr}
+.voice select{width:100%;background:#0b0306;border:2px solid rgba(255,241,208,.4);border-radius:8px;padding:6px;color:var(--cream)}
+.voice input[type=range]{accent-color:var(--yellow);width:100%}
+.voice output{font-size:12px;text-align:right}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 20px;padding:6px clamp(12px,2vw,28px) 8px;font-size:12.5px;color:var(--muted);background:#0c0408}
+.foot a{color:var(--yellow)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);z-index:60;background:var(--teal);color:#042a25;font-weight:700;padding:9px 16px;border-radius:10px;opacity:0;transition:.2s;pointer-events:none;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+@media (max-width:1180px){.dock{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){
+  .app{grid-template-rows:auto 560px auto auto}
+  .stage{min-height:0}
+  .dock{grid-template-columns:1fr}
+  .comic{height:60%;bottom:19%}
+  .crowd{height:19%}
+  .caption{bottom:calc(19% + 4px)}
+  .intro{align-items:flex-end;padding:0 14px 14px;background:linear-gradient(0deg,rgba(10,3,6,.95) 0%,rgba(10,3,6,.78) 52%,rgba(10,3,6,0) 82%)}
+  .poster{transform:none}
+  .kicker{font-size:11px;margin-bottom:6px}
+  .lede{margin:8px 0 12px;font-size:14px}
+  .setpick{margin-top:12px}
+  .mq-group{font-size:16px}
+  .sign{top:10px}
+  .neon{flex-direction:column;align-items:center;gap:0;font-size:30px;padding:6px 18px 8px}
+  .sub{font-size:9px;letter-spacing:.14em}
+  .pop.heck{max-width:60vw}
+  .leds i{width:8px}
+  .mq-track{animation-duration:26s}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .mq-track{transform:none}
+  .pop{opacity:1}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="marquee" aria-label="Tonight: Sudo Sam">
+    <div class="mq-track">
+      <div class="mq-group"><b>Tonight: Sudo Sam</b><i>&#9733;</i><span>One night only</span><i>&#9733;</i><span>No patches</span><i>&#9733;</i><span>All jokes original</span><i>&#9733;</i></div>
+      <div class="mq-group" aria-hidden="true"><b>Tonight: Sudo Sam</b><i>&#9733;</i><span>One night only</span><i>&#9733;</i><span>No patches</span><i>&#9733;</i><span>All jokes original</span><i>&#9733;</i></div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="wall"></div>
+    <div class="curtain l"></div><div class="curtain r"></div>
+    <div class="floor"></div>
+    <div class="spot"></div>
+    <div class="sign"><h1 class="neon"><span>ZERO-DAY</span><span class="f">STANDUP</span></h1><span class="sub">LIVE &middot; ONE MIC &middot; ZERO PATCHES</span></div>
+
+    <svg id="comic" class="comic" viewBox="0 0 330 530" role="img" aria-label="Silhouette of the comedian Sudo Sam at a microphone">
+      <defs>
+        <linearGradient id="lit" gradientUnits="userSpaceOnUse" x1="0" y1="60" x2="0" y2="430"><stop offset="0" stop-color="#6b5128"/><stop offset=".3" stop-color="#241410"/><stop offset="1" stop-color="#07030a"/></linearGradient>
+      </defs>
+      <ellipse cx="165" cy="514" rx="130" ry="11" fill="#000" opacity=".55"/>
+      <g fill="url(#lit)">
+        <path d="M100 292 L153 292 L148 500 L104 500Z"/><path d="M147 292 L200 292 L196 500 L152 500Z"/>
+        <path d="M96 494 Q96 484 112 484 L150 484 L156 508 L92 508Z"/><path d="M144 484 L188 484 Q206 484 208 494 L210 508 L146 508Z"/>
+      </g>
+      <g id="upper">
+        <g id="armL" stroke="url(#lit)" fill="none" stroke-linecap="round">
+          <path d="M104 186 L94 250" stroke-width="24"/>
+          <g id="foreL"><path d="M94 250 L96 312" stroke-width="19"/><circle cx="96" cy="320" r="10" fill="url(#lit)" stroke="none"/></g>
+        </g>
+        <path fill="url(#lit)" d="M104 172 C104 160 122 154 140 154 L160 154 C178 154 196 160 196 172 L206 304 L94 304Z"/>
+        <path d="M140 156 L150 232 L160 156" fill="none" stroke="#19f0d0" stroke-opacity=".85" stroke-width="2"/>
+        <rect x="140" y="226" width="20" height="27" rx="3" fill="#19f0d0" opacity=".92"/><rect x="144" y="232" width="12" height="3" fill="#06322c"/><rect x="144" y="239" width="9" height="3" fill="#06322c"/>
+        <rect x="176" y="288" width="15" height="20" rx="3" fill="#0b0306" stroke="#ffd23f" stroke-opacity=".7" stroke-width="2"/>
+        <path d="M104 172 C104 160 122 154 140 154" fill="none" stroke="#ffd23f" stroke-opacity=".45" stroke-width="2"/>
+        <g id="head" fill="url(#lit)">
+          <rect x="140" y="132" width="20" height="26"/>
+          <ellipse cx="150" cy="112" rx="30" ry="35"/>
+          <circle cx="119" cy="115" r="6"/><circle cx="181" cy="115" r="6"/>
+          <path d="M118 104 C112 66 150 56 168 66 C190 72 190 96 182 104 C176 88 162 82 150 85 C138 82 124 88 118 104Z"/>
+          <circle cx="128" cy="76" r="9"/><circle cx="146" cy="68" r="10"/><circle cx="166" cy="70" r="9"/>
+          <path d="M120 100 C118 78 134 62 150 60" fill="none" stroke="#ffd23f" stroke-opacity=".55" stroke-width="2"/>
+        </g>
+        <g id="armR" stroke="url(#lit)" fill="none" stroke-linecap="round">
+          <path d="M196 186 L206 250" stroke-width="24"/>
+          <g id="foreR"><path d="M206 250 L204 312" stroke-width="19"/><circle cx="204" cy="320" r="10" fill="url(#lit)" stroke="none"/></g>
+        </g>
+      </g>
+      <g id="stand">
+        <ellipse cx="278" cy="512" rx="38" ry="8" fill="#0b0306"/>
+        <rect x="275" y="214" width="6" height="298" fill="#0b0306"/>
+        <rect x="275" y="214" width="2" height="298" fill="#ffd23f" opacity=".35"/>
+        <g transform="rotate(-18 278 192)"><rect x="266" y="168" width="24" height="46" rx="12" fill="#1a1012"/><g stroke="#9c8d78" stroke-width="1.2" opacity=".75"><path d="M270 176h16M270 182h16M270 188h16M270 194h16"/></g><rect x="266" y="168" width="24" height="46" rx="12" fill="none" stroke="#ffd23f" stroke-opacity=".5" stroke-width="2"/></g>
+      </g>
+      <g id="dots" fill="#ffd23f"><circle cx="212" cy="62" r="4"/><circle cx="226" cy="62" r="4"/><circle cx="240" cy="62" r="4"/></g>
+    </svg>
+
+    <div class="crowd" id="crowd"><svg id="crowdSvg" viewBox="0 0 1600 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg></div>
+    <div class="pops" id="pops" aria-hidden="true"></div>
+    <div class="caption"><p id="caption" role="status" aria-live="polite"></p></div>
+
+    <div class="intro" id="intro">
+      <div class="poster">
+        <p class="kicker">Live in your browser &middot; sound on</p>
+        <h2 class="bill">Tonight:<span>Sudo Sam</span></h2>
+        <p class="lede">On-call, passwords, and a prince who needs your help. Cheer, groan or heckle. Sam hears everything.</p>
+        <button class="btn big" id="btnStart" type="button">Take the stage</button>
+        <div class="setpick" role="group" aria-label="Pick a set">
+          <button class="btn ghost sm" type="button" data-set="tight">Tight Five</button>
+          <button class="btn ghost sm" type="button" data-set="late">Late Show</button>
+          <button class="btn ghost sm" type="button" data-set="open">Open Mic Nerves</button>
+        </div>
+        <p class="fine">Voice and crowd are synthesised right here. No account, no network, no recording.</p>
+      </div>
+    </div>
+  </main>
+
+  <section class="dock" aria-label="Show controls">
+    <div class="grp">
+      <h2>Set</h2>
+      <div class="row" id="setChips" role="group" aria-label="Choose a set">
+        <button class="chip" type="button" data-set="tight" aria-pressed="false">Tight Five</button>
+        <button class="chip" type="button" data-set="late" aria-pressed="false">Late Show</button>
+        <button class="chip" type="button" data-set="open" aria-pressed="false">Open Mic Nerves</button>
+      </div>
+      <div class="row">
+        <button class="btn sm" id="btnOne" type="button">Tell me one</button>
+        <button class="btn sm ghost" id="btnPause" type="button" disabled>Pause</button>
+        <button class="btn sm ghost" id="btnSkip" type="button" disabled>Skip</button>
+        <button class="btn sm teal" id="btnEncore" type="button" hidden>Encore!</button>
+      </div>
+    </div>
+    <div class="grp">
+      <h2>Applause meter</h2>
+      <div class="meterwrap"><div class="leds" id="leds" role="img" aria-label="Crowd mood"></div><span class="mlabel" id="mlabel">Warm</span></div>
+      <div class="row">
+        <button class="btn sm teal" id="btnLaugh" type="button">Laugh</button>
+        <button class="btn sm ghost" id="btnGroan" type="button">Groan</button>
+        <button class="btn sm hot" id="btnHeckle" type="button">Heckle</button>
+      </div>
+    </div>
+    <div class="grp">
+      <h2>Heckler mode</h2>
+      <form class="heckle" id="heckleForm" autocomplete="off">
+        <label class="sr" for="heckleInput">Type a heckle</label>
+        <input id="heckleInput" type="text" maxlength="100" placeholder="Heckle Sam: try 'louder' or 'do the one about passwords'">
+        <button class="btn sm hot" type="submit">Heckle</button>
+      </form>
+      <div class="row">
+        <button class="btn sm ghost" id="btnShare" type="button">Share a favourite</button>
+      </div>
+    </div>
+    <div class="grp right">
+      <h2>Sound</h2>
+      <div class="row">
+        <button class="btn sm ghost" id="btnMute" type="button" aria-pressed="false">Mute</button>
+        <button class="btn sm ghost" id="btnVoice" type="button" aria-expanded="false" aria-controls="voicePanel">Voice &amp; crowd</button>
+      </div>
+      <div class="voice" id="voicePanel" role="group" aria-label="Voice and crowd settings">
+        <label class="sel">Voice<select id="voiceSel" aria-label="Voice"></select></label>
+        <label>Speed<input id="rate" type="range" min=".7" max="1.4" step=".05" value="1"><output id="rateO">1.0</output></label>
+        <label>Pitch<input id="pitch" type="range" min=".7" max="1.4" step=".05" value="1"><output id="pitchO">1.0</output></label>
+        <label>Crowd<input id="vol" type="range" min="0" max="1" step=".05" value=".8"><output id="volO">80</output></label>
+        <button class="btn sm teal" id="btnTest" type="button">Test the mic</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Original material. Fictional and good-natured. Everything runs in your browser.</span>
+    <span><a href="https://www.linkedin.com/in/gustavo-freitas-69b93910b/" target="_blank" rel="noopener">Built by Gustavo Freitas</a></span>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const pick = (arr, r = Math.random) => arr[Math.floor(r() * arr.length) % arr.length];
+const shuffle = (arr, r = Math.random) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ============================ MATERIAL ============================ */
+// s = setup, pause = ms of silence before the punchline, p = punchline, t = tags [mood,text], r = crowd reaction
+const J = (id, topics, s, pause, p, t, r, g, rim) => ({ id, topics, s, pause, p, t, r, g, rim });
+const SETS = [
+  { id: 'tight', name: 'Tight Five',
+    opener: ["Good evening, everybody! I'm Sudo Sam. I fix computers for a living, which mostly means turning things off and on again, and looking tired in meetings.", "Five minutes. No patches. Let's go."],
+    closer: ["That's my time. You've been wonderful. Lock your screen, call your dad, and never, ever click the prince.", "Goodnight!"],
+    jokes: [
+      J('t1', ['on call', 'oncall', 'pager', 'phone', 'alerts', 'dashboard'], "I'm on call this week. That means my phone and I are in a relationship, and it's the clingy kind.", 1000,
+        "It never texts to say hi. It only texts to say, 'We need to talk.' And then it's a dashboard.",
+        [['hot', "And it's all red. It's the most romantic thing I get all month."], ['cold', "I'll wait. I'm on call. Patience is part of the job."], ['any', "It always calls at dinner. It has a sixth sense for soup."]], 'laugh', 'shrug'),
+      J('t2', ['password', 'passwords', 'login', 'credential', 'ransom'], "Password rules are out of hand. Capital letter, number, symbol, no repeats, nothing from the dictionary.", 900,
+        "At this point my password isn't a password. It's a ransom note.",
+        [['hot', "'We have your birthday. Add an exclamation mark to see it again.'"], ['cold', "It's saved in my notes app. Somewhere. I'm not telling you where, and neither is the app."], ['any', "And then it says 'weak.' Weak! I've been called worse by smaller forms."]], 'laugh', 'tilt', true),
+      J('t3', ['sticky', 'sticky note', 'post-it', 'password', 'keyboard'], "A guy at my old office kept his password on a sticky note on his monitor. I said, 'That's a security risk.' He said, 'Relax, that's the old one.'", 1100,
+        "I said, 'So where's the new one?' He said, 'Under the keyboard.'",
+        [['hot', "He called it defence in depth. The depth was four centimetres."], ['cold', "Honestly, the keyboard was a nice touch. It showed planning."], ['any', "He's still proud of it. He's put a second note on the first one that says 'Do not remove.'"]], 'laugh', 'shrug', true),
+      J('t4', ['prince', 'phishing', 'scam', 'spam', 'email', 'fortune'], "I got an email from a prince who needs my help moving a fortune. A prince. In this economy.", 800,
+        "Sir, you have a castle. Hire movers.",
+        [['hot', "And he wants my bank details. Your Highness, if I had money, I wouldn't be doing this set."], ['cold', "His spelling was terrible. Royalty used to have standards."], ['any', "He signed it 'Your humble servant.' Big words from a man with a moat."]], 'laugh', 'tilt', true),
+      J('t5', ['turn it off', 'reboot', 'restart', 'help desk', 'have you tried', 'tuesday'], "'Have you tried turning it off and on again?' is the only medical advice that works on everything.", 900,
+        "Printers, routers, servers. I tried it on my Tuesday. Nothing. Still Tuesday.",
+        [['hot', "Wednesday didn't load either."], ['cold', "I'll be here all week. That's not a joke. That's my schedule."], ['any', "I tried it on my inbox. It came back with more."]], 'laugh', 'tilt'),
+      J('t6', ['meeting', 'meetings', 'ping', 'email', 'zoom', 'sync'], "Every week we have a one-hour meeting. Fifteen people. Sixty minutes. Half of it is, 'Can everyone see my screen?'", 1000,
+        "That's fifteen hours of human life, spent on what could have been one ping: 'No change.'",
+        [['hot', "And then we schedule a meeting to prepare for the next meeting. It's recursion with snacks."], ['cold', "Somebody always says, 'Let's take this offline.' We are offline. Spiritually."], ['any', "I've started muting myself in real life."]], 'groan', 'shrug'),
+      J('t7', ['naming', 'names', 'temp', 'server', 'servers'], "They say naming things is the hardest problem in computing. Years ago I named a test server 'temp.'", 900,
+        "That was four years ago. 'Temp' now has a pension.",
+        [['hot', "Nobody dares touch it. It has seniority. It has a parking spot."], ['cold', "Don't unplug 'temp.' Temp knows things."], ['any', "Its replacement is called 'temp2.' We never learn."]], 'laugh', 'grab', true),
+      J('t8', ['captcha', 'human', 'robot', 'bus', 'traffic lights'], "I failed the 'are you human' test today. It said, 'Select all squares with a bus.' There was a tiny corner of a bus. Does a bumper count?", 1200,
+        "I stood there for four minutes, debating a bumper. And honestly, that explained a lot.",
+        [['hot', "The robot let me through eventually. I think it felt sorry for me."], ['cold', "The hard version has motorcycles. I'm still recovering."], ['any', "I now say 'please' to every captcha. Just in case."]], 'laugh', 'tilt'),
+      J('t9', ['dad', 'wifi', 'wi-fi', 'router', 'internet', 'family'], "My dad calls me for tech support like I'm a paid hotline. 'The Wi-Fi is broken.' I say, 'Did you restart the router?'", 1100,
+        "He says, 'It's not the router. It's the internet.' And he points at the ceiling, like the internet lives upstairs.",
+        [['hot', "Then he asked if I could download more RAM. I said, 'Dad, we're all out.'"], ['cold', "I love him. He's the reason I have a career."], ['any', "His Wi-Fi name is the dog's name. The dog is not impressed either."]], 'laugh', 'shrug')
+    ] },
+  { id: 'late', name: 'Late Show',
+    opener: ["Welcome to the late show! The crowd that stays up past the maintenance window. I respect that.", "Pull up a chair. Nothing here is mission critical."],
+    closer: ["You've been a great crowd. Restart your week, and may your uptime be higher than my confidence. Goodnight!"],
+    jokes: [
+      J('l1', ['soc', '3am', 'night', 'security', 'logins', 'cat', 'operations'], "Security operations at three in the morning is very quiet. Ten people, twelve monitors, one microwave. And someone whispers, 'That's a lot of failed logins.'", 1200,
+        "And somebody else whispers back, 'Or it's a cat on a keyboard.' And the scary part is, we all hope it's the cat.",
+        [['hot', "The cat has been escalated to tier two."], ['cold', "Cats don't have admin rights. Yet."], ['any', "We checked. It wasn't the cat. It was a printer. Somehow worse."]], 'laugh', 'beat', true),
+      J('l2', ['update', 'updates', 'patch', 'patching', 'later'], "My computer says, 'Update now, or later.' Those are my choices. Never 'no.' Never 'leave me alone.'", 1000,
+        "Every night I click 'later,' and every night it says, 'Okay. I'll remember.' It's not an update. It's a grudge with a progress bar.",
+        [['hot', "And it always strikes mid-presentation. Revenge, served on slide nine."], ['cold', "Three months of 'later.' We're basically married."], ['any', "It's never once asked how my day was."]], 'laugh', 'tilt', true),
+      J('l3', ['phishing', 'training', 'link', 'links', 'mum', 'mom'], "Phishing training taught me to hover over every link before clicking. And it worked. I've never been more careful.", 1100,
+        "Last week I spent ten minutes hovering over a link from my mum. It said, 'Dinner Sunday.' I still don't trust it.",
+        [['hot', "She called to say, 'It's me, honey.' Which is exactly what the scam would say."], ['cold', "I did go. The lasagne checked out."], ['any', "I asked her for a one-time code. She gave me a hug. Rejected."]], 'laugh', 'shrug'),
+      J('l4', ['friday', 'deploy', 'deployment', 'release', 'code', 'weekend'], "There's an old rule in tech: never deploy on a Friday.", 900,
+        "So we deploy on Thursday at five. That's just Friday in a fake moustache.",
+        [['hot', "And we call it 'agile.' Agile means 'we'll fix it Saturday.'"], ['cold', "The rule is about weekends. The weekend has never once agreed."], ['any', "Monday called. It says it knows."]], 'laugh', 'tilt', true),
+      J('l5', ['cookies', 'privacy', 'popup', 'pop-up', 'consent', 'website'], "Every website has a pop-up about cookies. 'We value your privacy.' There's a big button that says Accept All, and a tiny link that says Manage Preferences.", 1000,
+        "That link is eleven screens and a quiz. That's not privacy. That's an escape room where the prize is reading an article.",
+        [['hot', "I got out once. I was older."], ['cold', "I always click Accept. I'm not proud. I just want the soup recipe."], ['any', "Nobody has ever managed a preference. It's a myth, like inbox zero."]], 'laugh', 'shrug'),
+      J('l6', ['2fa', 'two factor', 'two-factor', 'code', 'authentication', 'mfa', 'numbers'], "Two-factor authentication. The app gives me a code. I have thirty seconds to type six numbers.", 900,
+        "It's the only race where I get beaten by a clock I'm holding.",
+        [['hot', "I've lost to six digits more times than I've lost to people."], ['cold', "I now type it with both thumbs and a prayer."], ['any', "The code changes at the exact moment I look up. It knows."]], 'laugh', 'grab', true),
+      J('l7', ['backup', 'backups', 'restore', 'disaster', 'gym'], "We have backups. Of course we do. Three copies, two locations, one offsite.", 1000,
+        "And nobody has ever tested them. Our backups are like gym memberships. We pay every month and we're afraid to find out how we'd do.",
+        [['hot', "We'll test them next quarter. We've been saying that since last quarter."], ['cold', "The restore plan is a folder called 'Restore Plan.' It's empty. It's very organised."], ['any', "We have a plan for disasters. It's called 'hoping.'"]], 'groan', 'tilt'),
+      J('l8', ['security questions', 'pet', 'goldfish', 'breach', 'breaches', 'questions'], "'What was the name of your first pet?' Every site asks it. So now my childhood goldfish is in forty databases.", 1000,
+        "He never even left the bowl, and he's been in more breaches than I have.",
+        [['hot', "He's the most protected member of my family. Premium security. Goldfish-grade."], ['cold', "I told one site his name was 'Bubbles.' It wasn't. It was 'Bubbles2.' I'm not stupid."], ['any', "Every site asks what street I grew up on. I'm starting to think they're lonely."]], 'laugh', 'beat', true),
+      J('l9', ['ai', 'artificial', 'toaster', 'chatbot', 'machine learning', 'toast'], "Everything is 'AI-powered' now. My toaster says it on the box.", 800,
+        "My toast is still burnt. But now it's burnt with confidence.",
+        [['hot', "It sent me a notification: 'Your toast is ready.' It was ready ten minutes ago. It's very proud."], ['cold', "It asked me to rate my toast. Four stars. It lost a point for being bread."], ['any', "I asked it for a joke. It said, 'Here's a joke.' And then it just hummed."]], 'groan', 'shrug'),
+      J('l10', ['reply all', 'email', 'emails', 'inbox', 'list'], "Someone replied all to four thousand people to say, 'Please remove me from this list.'", 1000,
+        "Then six hundred people replied all to say, 'Please stop replying all.' It's the only fire drill we have in IT: everyone's yelling, and the fire is us.",
+        [['hot', "By lunch the thread had its own weather."], ['cold', "One person replied 'Unsubscribe.' To a person. He's still subscribed."], ['any', "Somewhere, one man is typing 'Sorry, wrong list.' To all."]], 'laugh', 'grab'),
+      J('l11', ['cloud', 'computer', 'storage', 'photos'], "They say the cloud is just someone else's computer. Okay. Whose?", 1000,
+        "Because somewhere, a stranger's machine is holding my photos, my work, and my entire music taste, and I haven't even met them. I don't let people borrow my pen.",
+        [['hot', "And they have the nerve to say 'five nines.' I can't get one nine out of my laptop."], ['cold', "I'd send a thank-you card, but I don't know their address. Or their weather."], ['any', "I like to think it's a very organised garage in a very warm country."]], 'laugh', 'tilt')
+    ] },
+  { id: 'open', name: 'Open Mic Nerves',
+    opener: ["Hi. Hello. Is this on? Okay. Hi. I'm Sudo Sam, and this is my first time doing this in front of real people. Normally it's just me and a rubber duck."],
+    closer: ["Thank you. Seriously. You were kind. I'm going to go sit in a quiet room and compile my feelings. Goodnight!"],
+    jokes: [
+      J('n1', ['nervous', 'nerves', 'timeout', 'heart'], "I'm a little nervous. My heart rate is at about a hundred and forty, and my brain is returning a four-oh-eight.", 1100,
+        "'Request timeout.' Please be gentle. I'm running on one core.",
+        [['hot', "Thank you. You just brought the latency down."], ['cold', "That's okay. I'll buffer."], ['any', "In my head this is going really well. In my hands it's a tambourine."]], 'laugh', 'shrug'),
+      J('n2', ['mic', 'microphone', 'ice cream'], "They gave me a microphone. It has one job: make my voice louder.", 800,
+        "And I'm still holding it like a very small, very loud ice cream.",
+        [['hot', "Please don't make me drop it. I've seen what happens to ice cream."], ['cold', "I'm told you speak into the round end. I'm learning."], ['any', "It has a little foam hat. Even the microphone is dressed better than me."]], 'laugh', 'grab', true),
+      J('n3', ['five minutes', 'time', 'agenda', 'quick sync'], "They told me I have five minutes. In a meeting, five minutes means a quick sync, and it takes forty.", 1000,
+        "On stage, five minutes means I've told every joke I own, and there are four and a half minutes left.",
+        [['hot', "So if this goes badly, I'll be doing my taxes out loud."], ['cold', "I have more. They get worse. It's a feature."], ['any', "I'm timing myself on a watch. It's on silent. It keeps blinking at me."]], 'laugh', 'shrug'),
+      J('n4', ['stand', 'confident', 'imposter', 'google', 'search'], "Everyone here looks so confident. And I'm thinking, do they know I Googled how to stand?", 1000,
+        "I searched 'how to stand on stage.' The top result said, 'Stand.' And it still took me three tries.",
+        [['hot', "Next I'm searching 'what to do with arms.' I'll let you know."], ['cold', "I did read the second result. It was a forum. Never read the forum."], ['any', "I'm standing in a way I'm calling 'relaxed.' My knees disagree."]], 'laugh', 'tilt'),
+      J('n5', ['mirror', 'practice', 'practise', 'dishwasher', 'heckle'], "I practised this set in the mirror. The mirror laughed twice.", 1000,
+        "Then I realised that was the dishwasher. Tough room. Even the appliances heckle.",
+        [['hot', "The dishwasher wanted a tip."], ['cold', "I'll take it. The dishwasher has really good timing."], ['any', "The mirror said I should open with a stronger joke. It's very opinionated for glass."]], 'laugh', 'beat', true),
+      J('n6', ['phone', 'silent', 'on call', 'servers', 'fire'], "I put my phone on silent so it wouldn't ring during my set. Very professional. And then I remembered I'm on call.", 1000,
+        "So my phone is on silent while the servers are on fire. Please laugh quickly. I need to check something.",
+        [['hot', "It's fine. It's probably nothing. It's always probably nothing, right up to the part where it's something."], ['cold', "If I leave suddenly, enjoy the rest of the show in your hearts."], ['any', "I keep glancing at it. It's like dating, but it's my phone."]], 'laugh', 'shrug', true),
+      J('n7', ['mum', 'mom', 'family', 'embarrass'], "My mum's here tonight. Back row. Hi, Mum. She said, 'Don't embarrass me.'", 900,
+        "Mum, I'm a nervous person with a microphone. The embarrassing part was already in the budget.",
+        [['hot', "She's already told her friends I'm 'very important in computers.'"], ['cold', "She's laughing. That's one. I'm counting."], ['any', "She brought snacks. Lovely. She doesn't trust the snacks here."]], 'laugh', 'grab'),
+      J('n8', ['lights', 'bright', 'coat rack', 'dark mode'], "The lights are so bright I can't see any of you. It's like dark mode for people.", 1000,
+        "All I can tell is that one of you is a coat rack. And honestly, you're my best listener.",
+        [['hot', "Coat rack, if you're laughing, I'm so proud."], ['cold', "Coat rack hasn't left. That's loyalty."], ['any', "I can see one small blue light. Somebody's on their phone. I respect it. I'd be too."]], 'laugh', 'tilt'),
+      J('n9', ['friend', 'feelings', 'computers', 'stand-up'], "I told my friend I was doing stand-up. He said, 'Is it about computers?' I said, 'Mostly feelings.'", 1000,
+        "He said, 'So, computers.'",
+        [['hot', "I can't even argue with that. I've tried."], ['cold', "He's right. He's very right. He's why I'm here."], ['any', "He's in the back. He's the one who is correct."]], 'laugh', 'shrug', true),
+      J('n10', ['breathe', 'calm', 'stable', 'build', 'heart rate'], "Okay. I'm calming down. Deep breath in.", 1400,
+        "And out. My heart rate is down to a hundred and ten. In my world, that's a stable build.",
+        [['hot', "Ship it."], ['cold', "We'll call it a release candidate."], ['any', "Please don't deploy on a Friday. I'm just saying that out loud, in case."]], 'laugh', 'bow')
+    ] }
+];
+const ALL_JOKES = SETS.flatMap(s => s.jokes);
+const BRIDGES = {
+  hot: ["You're a great crowd. Don't tell the other crowds.", "Okay, you're warm. Careful, I might start enjoying this.", "This room has excellent uptime."],
+  cold: ["Tough room? That's fine. I brought a space heater and a server rack.", "Quiet crowd. I'll take that as concentration.", "I can hear my own heartbeat. It's buffering."],
+  any: ["Anyway.", "New topic. Same fear.", "Stay with me. I have a pager.", "Okay, next one. It's not related. It's all related."]
+};
+const ONE_INTROS = ["Fresh from the cache.", "Request received. Processing.", "Oh, you want one? Okay. One.", "Hang on, let me check the backlog."];
+const ENCORE_INTROS = ["Oh, you want one more? Okay, okay. Since you asked nicely.", "An encore? I've only got the leftovers. Luckily those are the best ones."];
+const ENCORE_OUT = ["Thank you, thank you. Lock your screens. Goodnight, for real this time!"];
+const LAUGH_REPLIES = ["You're a warm room. I'll take it. Don't tell my mum.", "Thank you! That one goes in the release notes.", "That's the sound I came here for. It's like a green build."];
+const GROAN_REPLIES = ["That groan had range. I'll put it in the changelog.", "A groan is just a laugh in a different timezone.", "Yes, I heard it too. I wrote it, so I'm morally responsible."];
+const HECKLES = ["Boring!", "Do the one about passwords!", "Louder!", "Is the cloud even real?", "Can AI do this?", "Have you tried turning yourself off and on?", "I'm tired!", "That's a bug!", "Free Wi-Fi?!", "Is this on call?"];
+
+/* ============================ HECKLER MATCHER ============================ */
+const RULES = [
+  { id: 'hostile', re: /\b(boo+|suck|sucks|terrible|awful|worst|not funny|unfunny|trash|rubbish|shut up|stupid|idiot|lame)\b/, g: 'shrug',
+    r: ["Tough crowd! I'm taking that as 'engaged.'", "Direct feedback. No ticket, no triage, straight to production. I respect it.", "Noted! I'll file it under 'known issues, won't fix, but loved.'"] },
+  { id: 'boring', re: /\b(bor(ing|ed)|meh|yawn|dull|stale|snooze)\b/, g: 'tilt',
+    r: ["Boring? That's the sound of a well-run system. Nothing's on fire. Enjoy it.", "I've been told my set has high uptime and low excitement. Rebooting the energy now.", "Boring is just peaceful with worse marketing."] },
+  { id: 'louder', re: /\b(louder|speak up|cant hear|can't hear|quiet|volume|turn it up)\b/, g: 'grab',
+    r: ["Louder? I'm already at maximum confidence. There's a volume slider down there with your name on it.", "I'd go louder, but then the neighbours would file a ticket. Try the crowd slider.", "Can't hear me? Check the sound panel. I promise I'm not on mute. Probably."] },
+  { id: 'tired', re: /\b(tired|sleepy|exhausted|knackered|yawning|sleep|asleep)\b/, g: 'tilt',
+    r: ["Tired? Tired is the official uniform of this industry. Stretch, drink some water, and laugh at least once. You've earned it.", "We're all running on fumes and good intentions here. Stay as long as you like. The seats are free.", "That's fair. If you need to rest, nobody here will mind. I'll keep it warm."] },
+  { id: 'password', re: /\b(pass ?words?|passwd|credentials?|sticky|login|logins)\b/, g: 'beat',
+    r: ["Passwords! My favourite relationship: high maintenance, and it's always my fault.", "My password is a very long sentence about how much I hate passwords. It's very secure and very sad.", "I changed my password to 'incorrect' so the site would tell me when I'm right."] },
+  { id: 'ai', re: /\b(ai|a\.i\.|gpt|chatbots?|robots?|llms?|machine learning|bots?)\b/, g: 'shrug',
+    r: ["AI? I asked one to write my act. It gave me a very confident paragraph and zero punchlines. Relatable.", "I'm not worried about AI. It can't do crowd work. It doesn't know when to stop talking. Oh wait.", "I'd love an AI co-writer. It can have half my royalties. That's, let me check, nothing."] },
+  { id: 'bug', re: /\b(bugs?|glitch|errors?|crash(es|ed)?|broken|fails?|failed)\b/, g: 'tilt',
+    r: ["That's not a bug. That's an unscheduled audience interaction.", "A bug in my set? I prefer 'undocumented feature with stage presence.'", "I'd fix it, but I haven't been given the repo, the budget, or the time."] },
+  { id: 'cloud', re: /\b(clouds?|serverless|saas|data ?centers?)\b/, g: 'shrug',
+    r: ["The cloud is real. It's a building full of fans, and somewhere in it is my tax return, being very brave.", "Cloud? I tried moving my life there. It's just my stuff in a stranger's garage with better lighting.", "The cloud is somebody's computer, and that somebody is having a very busy Tuesday."] },
+  { id: 'wifi', re: /\b(wi-?fi|wifi|routers?|internet|lag|laggy|slow|buffering)\b/, g: 'tilt',
+    r: ["Wi-Fi! The only utility that gets worse when you stand near the thing you love.", "Did you try moving to the other side of the room? It works. Nobody knows why.", "My Wi-Fi has three bars and one opinion, and the opinion is 'no.'"] },
+  { id: 'phish', re: /\b(prince|phish(ing)?|scams?|spam|inbox)\b/, g: 'tilt',
+    r: ["The prince? He's emailed me again. I think we're in a relationship now. He sends a lot of capital letters.", "I got an email that said, 'Urgent: click here.' So I clicked. I mean, I thought about clicking. Then I hovered. For a week.", "Spam is just the internet's way of staying in touch."] },
+  { id: 'meeting', re: /\b(meetings?|emails?|zoom|stand-?up|sync|calendar|agenda)\b/, g: 'shrug',
+    r: ["A standup with no blockers? Mine has one: the audience.", "This is a very short meeting. The only agenda is laughter, and we're ahead of schedule.", "This could have been an email. But then you'd miss the lighting."] },
+  { id: 'coffee', re: /\b(coffee|caffeine|espresso|tea|energy drinks?)\b/, g: 'grab',
+    r: ["Coffee is the on-call team's ticketing system: you pour something in and eventually things move.", "I run on coffee, spite, and a calendar reminder that says 'try harder.'", "If you have coffee, I'll take two. It's for the mic. The mic is thirsty."] },
+  { id: 'update', re: /\b(updates?|patch(es)?|reboot|restart|upgrade)\b/, g: 'shrug',
+    r: ["Updates! 'Remind me tomorrow' is a lifestyle.", "I've been meaning to patch my life. There's a pending restart. It's been pending since 2019.", "Restart required. That's what my doctor said, too. Okay, not a doctor. A pop-up."] },
+  { id: 'hack', re: /\b(hack(er|ers|ing)?|exploit|zero ?-?days?|breach(es)?|pwn(ed)?)\b/, g: 'beat',
+    r: ["A zero-day! Yes, I've got one right here: this is day zero of my comedy career.", "A breach? Yes, I'm breaching the fourth wall, and nobody signed off on it.", "I'm a hacker in the sense that I hack at my own jokes until they stop moving."] },
+  { id: 'captcha', re: /\b(captcha|traffic lights?|crosswalks?|bus(es)?)\b/, g: 'tilt',
+    r: ["The bus test! Does a bumper count? I've never been so unsure about a vehicle.", "I once failed a captcha for a staircase. I live in a bungalow. Still my fault.", "Captcha asked if I was human. I said, 'Define human.' It sent me a bus."] },
+  { id: 'oncall', re: /\b(on-?call|pager|alerts?|3 ?am|soc|incident|ticket)\b/, g: 'shrug',
+    r: ["On call! It's the only job where 'quiet night' is a threat.", "Every pager has one job: wait until you're cosy, then scream. It's a very efficient friendship.", "The ticket says 'urgent.' The ticket also says 'created yesterday.' We are all very busy."] },
+  { id: 'family', re: /\b(dad|mum|mom|mother|father|parents?|family|grandma|grandpa)\b/, g: 'grab',
+    r: ["Family! The only support team that never closes a ticket and never stops calling.", "My dad would love this. He'd ask who invented the stage and whether it has a password.", "Mum, if you're in the back row, I love you. Please don't fix my posture."] },
+  { id: 'dev', re: /\b(linux|windows|macos|mac|ubuntu|vim|emacs|python|javascript|java|rust|git|code|coding|developers?|programmers?)\b/, g: 'tilt',
+    r: ["Editor wars? I'm neutral. I use whichever one is already open. It's the only security policy I've ever followed.", "Developers! The only people who can look at a bug and say, 'Fascinating.'", "Code? I wrote some once. It worked. I haven't touched it since. We're not speaking."] },
+  { id: 'compliment', re: /\b(love|great|funny|good|best|awesome|lol|haha+|nice|hilarious|brilliant|amazing|fantastic|clap)\b/, g: 'bow',
+    r: ["Thank you! Please put that in writing, ideally on a five-star review sent to my mum.", "Careful. One more of those and I'll need a bigger ego license.", "That's the nicest thing anyone's said to me since 'Your build passed.'"] },
+  { id: 'hello', re: /^\s*(hi|hello|hey|yo|howdy|sup|good evening)\b/, g: 'bow',
+    r: ["Hello! You've reached Sudo Sam. Your call is important to us, so please enjoy this hold music: me.", "Hi! Welcome. Please remain seated and keep your Wi-Fi off. I mean, on. I mean, I don't know. Hi!"] },
+  { id: 'name', re: /\b(who are you|your name|sudo|sam)\b/, g: 'bow',
+    r: ["I'm Sudo Sam. The only comedian who asks permission before every bit, and then does it anyway.", "Sudo Sam. Superuser of this stage, administrator of this microphone, owner of one very tired chair."] },
+  { id: 'more', re: /\b(encore|more|again|another|one more|joke|tell me|make me laugh|something funny)\b/, g: 'grab', action: 'joke',
+    r: ["Oh, you want another? I like your style. Here's one.", "A request! Let me check the shelf.", "Say less. I have more."] }
+];
+const GENERIC = ["I'm going to pretend that was a compliment. It's safer for the build.", "A live comment! Normally I only get those from monitoring tools.", "That's the best input validation I've had all night. Rejected, but beautifully formed.", "Wow. That's the kind of heckle you could ship.", "I'm going to need that in a support ticket, with screenshots.", "Interesting. I'll take it under advisement, which is a polite way of saying I'll put it in a folder and never open it."];
+const REQUEST_RE = /(?:do|tell|give|play|hit|got|have)\s+(?:us\s+|me\s+)?(?:the\s+one|that\s+one|a\s+one|one|a\s+joke|a\s+bit|the\s+bit|a\s+story)\s+(?:about|on|with)\s+(.{2,60})$/;
+const norm = t => String(t || '').toLowerCase().replace(/[^a-z0-9'\-.\s]/g, ' ').replace(/\s+/g, ' ').trim();
+function findJokeByTopic(x, r = Math.random) {
+  const text = norm(x); const tokens = text.split(/[^a-z0-9\-]+/).filter(w => w.length >= 2);
+  let best = [], bs = 0;
+  for (const j of ALL_JOKES) {
+    let s = 0;
+    for (const tp of j.topics) { if (text.includes(tp) || tokens.some(w => (w.length >= 3 && (tp === w || tp.startsWith(w) || w.startsWith(tp))) || (w.length === 2 && tp === w))) s++; }
+    if (s > bs) { bs = s; best = [j]; } else if (s === bs && s > 0) best.push(j);
+  }
+  return best.length ? pick(best, r) : null;
+}
+const recentReply = new Map();
+function pickReply(id, list, r) {
+  const used = recentReply.get(id) || [];
+  let opts = list.filter(x => !used.includes(x)); if (!opts.length) { opts = list; recentReply.set(id, []); }
+  const v = pick(opts, r); (recentReply.get(id) || (recentReply.set(id, []), recentReply.get(id))).push(v); return v;
+}
+function matchHeckle(text, r = Math.random) {
+  const t = norm(text);
+  if (!t) return { id: 'generic', reply: pickReply('generic', GENERIC, r), g: 'tilt' };
+  const m = t.match(REQUEST_RE);
+  if (m) {
+    const joke = findJokeByTopic(m[1], r);
+    if (joke) return { id: 'request', reply: pickReply('request', ["Requests! Fine. This one's on the house.", "A request from the floor. I love that. Here you go.", "You asked, the cache delivered."], r), g: 'grab', joke };
+    return { id: 'request-miss', reply: pickReply('request-miss', ["I don't have one about that. Yet. Give me a week and a sticky note.", "That one's still in my drafts folder, under 'ideas that scare me.'", "Not tonight. But I respect the ambition. Have this one instead."], r), g: 'shrug', action: 'joke' };
+  }
+  for (const rule of RULES) {
+    if (rule.re.test(t)) return { id: rule.id, reply: pickReply(rule.id, rule.r, r), g: rule.g, action: rule.action };
+  }
+  return { id: 'generic', reply: pickReply('generic', GENERIC, r), g: pick(['tilt', 'shrug', 'grab'], r) };
+}
+
+/* ============================ DELIVERY ENGINE (pure) ============================ */
+const paceOf = mood => 0.8 + clamp(mood, 0, 100) / 100 * 0.5;           // cold room: tighter, hot room: let it breathe
+function chunkText(text, max = 140) {
+  const parts = text.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g) || [text];
+  const out = [];
+  for (let p of parts) {
+    p = p.trim(); if (!p) continue;
+    if (p.length <= max) { out.push(p); continue; }
+    let cur = '';
+    for (const piece of p.split(/(?<=[,;:])\s+/)) {
+      if ((cur + ' ' + piece).trim().length > max && cur) { out.push(cur.trim()); cur = piece; } else cur = (cur + ' ' + piece).trim();
+    }
+    if (cur) out.push(cur.trim());
+  }
+  return out;
+}
+function pickTag(joke, mood, r = Math.random) {
+  if (!joke.t || !joke.t.length) return null;
+  const pool = mood >= 65 ? 'hot' : mood <= 35 ? 'cold' : 'any';
+  let c = joke.t.filter(x => x[0] === pool);
+  if (!c.length) c = joke.t.filter(x => x[0] === 'any');
+  if (!c.length) c = joke.t;
+  const chance = mood >= 65 ? 0.9 : mood <= 35 ? 0.9 : 0.55;   // a hot room gets the extra, a cold room gets a save
+  return r() < chance ? pick(c, r)[1] : null;
+}
+function planReaction(joke, mood, r = Math.random) {
+  const base = joke.r || 'laugh'; const x = r();
+  let kind = base, level = clamp(0.35 + mood / 100 * 0.6 + (x - 0.5) * 0.2, 0.2, 1);
+  if (base === 'laugh') {
+    if (mood < 22 && x < 0.45) { kind = 'chuckle'; level *= 0.6; }
+    else if (mood > 78 && x > 0.45) kind = 'big';
+  } else if (base === 'groan') { level = clamp(0.5 + mood / 200, 0.3, 1); if (mood < 15 && x < .5) kind = 'crickets'; }
+  const dur = { laugh: 1.8 + level * 2.2, big: 3.6, chuckle: 1.1, groan: 1.8, crickets: 2.0, applause: 3, cheer: 3 }[kind] || 2;
+  const moodD = { laugh: 3, big: 4, chuckle: 1, groan: 2, crickets: -2, applause: 2 }[kind] || 0;
+  return { kind, level, dur, moodD };
+}
+// Steps are plain data so the queue can be inspected and tested.
+function sayChunks(text, role, o, steps) {
+  const { rate, pitch, mood } = o;
+  const prof = role === 'punch' ? { r: 1.05, p: 1.1, v: 1 } : role === 'tag' ? { r: 1.07, p: 0.96, v: 0.88 } : { r: 0.98, p: 1, v: 0.95 };
+  const cs = chunkText(text);
+  cs.forEach((c, i) => {
+    steps.push({ k: 'say', role, text: c, rate: +(rate * prof.r * (mood > 75 ? 1.02 : 1)).toFixed(3), pitch: +(pitch * prof.p).toFixed(3), vol: prof.v });
+    if (i < cs.length - 1) steps.push({ k: 'wait', ms: Math.round(170 * paceOf(mood)), label: 'breath' });
+  });
+}
+function buildJokeSteps(joke, mood, o = {}) {
+  const r = o.rand || Math.random; const base = { rate: o.rate || 1, pitch: o.pitch || 1, mood };
+  const steps = [];
+  steps.push({ k: 'gesture', g: joke.g === 'beat' ? 'grab' : (joke.g || 'grab') });
+  sayChunks(joke.s, 'setup', base, steps);
+  const pause = Math.round(joke.pause * paceOf(mood));
+  steps.push({ k: 'gesture', g: 'beat' });
+  steps.push({ k: 'wait', ms: pause, label: 'beat' });
+  steps.push({ k: 'gesture', g: joke.g && joke.g !== 'grab' ? joke.g : pick(['tilt', 'shrug'], r) });
+  sayChunks(joke.p, 'punch', base, steps);
+  steps.push({ k: 'wait', ms: 220, label: 'land' });
+  if (joke.rim && mood > 30) steps.push({ k: 'sfx', kind: 'rim' });
+  const rx = planReaction(joke, mood, r);
+  steps.push({ k: 'react', kind: rx.kind, level: rx.level, dur: rx.dur, hold: Math.round(rx.dur * 1000 * (0.3 + mood / 300)), moodD: rx.moodD });
+  const tag = pickTag(joke, mood, r);
+  if (tag) {
+    steps.push({ k: 'wait', ms: Math.round(450 * paceOf(mood)), label: 'tagbeat' });
+    sayChunks(tag, 'tag', base, steps);
+    steps.push({ k: 'react', kind: mood < 30 ? 'chuckle' : 'laugh', level: clamp(rx.level * 0.8, 0.2, 1), dur: 1.4, hold: Math.round(500 * paceOf(mood)), moodD: 1 });
+  }
+  steps.push({ k: 'wait', ms: Math.round(450 * paceOf(mood)), label: 'settle' });
+  return steps;
+}
+function buildLinesSteps(lines, mood, o = {}) {
+  const base = { rate: o.rate || 1, pitch: o.pitch || 1, mood }; const steps = [];
+  lines.forEach((ln, i) => {
+    const L = typeof ln === 'string' ? { t: ln } : ln;
+    if (L.g) steps.push({ k: 'gesture', g: L.g });
+    if (i === 0 && o.beatFirst) steps.push({ k: 'wait', ms: Math.round(o.beatFirst * paceOf(mood)), label: 'beat' });
+    sayChunks(L.t, L.role || 'setup', base, steps);
+    if (L.react) steps.push({ k: 'react', ...L.react });
+    if (i < lines.length - 1) steps.push({ k: 'wait', ms: Math.round(380 * paceOf(mood)), label: 'between' });
+  });
+  steps.push({ k: 'wait', ms: Math.round(300 * paceOf(mood)), label: 'settle' });
+  return steps;
+}
+
+/* ============================ STATE ============================ */
+const T = { scale: 1, silent: false };                     // timing hooks (tests accelerate time, skip audio/speech)
+const state = { mood: 55, setId: null, paused: false, mode: 'idle', encoreReady: false, last: null, seen: new Set(), muted: false, rate: 1, pitch: 1, vol: 0.8, voice: null, voiceURI: '' };
+const events = [];
+let acts = [], busy = false, cur = { cancelled: false, wake: new Set() }, pumpDone = Promise.resolve(), pauseWaiters = [];
+
+try { const sv = JSON.parse(localStorage.getItem('zds.v1') || '{}'); Object.assign(state, { rate: sv.rate ?? 1, pitch: sv.pitch ?? 1, vol: sv.vol ?? 0.8, muted: !!sv.muted, voiceURI: sv.voiceURI || '' }); } catch (e) {}
+const persist = () => { try { localStorage.setItem('zds.v1', JSON.stringify({ rate: state.rate, pitch: state.pitch, vol: state.vol, muted: state.muted, voiceURI: state.voiceURI })); } catch (e) {} };
+
+/* ============================ UI HELPERS ============================ */
+const stage = $('#stage'), comic = $('#comic'), cap = $('#caption'), crowdEl = $('#crowd'), pops = $('#pops');
+let gTimer = 0, capTimer = 0, toastTimer = 0, crowdTimer = 0;
+function setGesture(g, holdMs) {
+  comic.classList.remove('g-tilt', 'g-grab', 'g-shrug', 'g-beat', 'g-laugh', 'g-bow');
+  stage.classList.toggle('beat', g === 'beat');
+  if (g) comic.classList.add('g-' + g);
+  clearTimeout(gTimer);
+  if (holdMs) gTimer = setTimeout(() => setGesture(''), holdMs);
+}
+function caption(text, role) { cap.textContent = text; cap.dataset.role = role || ''; cap.classList.toggle('show', !!text); clearTimeout(capTimer); }
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); }
+function pop(text, cls) {
+  const e = document.createElement('div'); e.className = 'pop ' + (cls || ''); e.textContent = text;
+  e.style.left = (Math.random() < 0.5 ? 5 + Math.random() * 18 : 66 + Math.random() * 18) + '%'; e.style.bottom = (Math.random() * 110) + 'px';
+  pops.appendChild(e); setTimeout(() => e.remove(), cls === 'heck' ? 3300 : 1800);
+}
+function crowdClass(c, ms) {
+  crowdEl.classList.remove('laugh', 'groan', 'clap'); if (c) crowdEl.classList.add(c);
+  clearTimeout(crowdTimer); if (c) crowdTimer = setTimeout(() => crowdEl.classList.remove('laugh', 'groan', 'clap'), ms);
+}
+const MOODWORDS = [[20, 'Frozen'], [40, 'Chilly'], [60, 'Warm'], [80, 'Hot'], [101, 'On fire']];
+const moodWord = m => MOODWORDS.find(x => m < x[0])[1];
+const LEDS = 20; let surge = 0, surgeRaf = 0;
+function buildLeds() { $('#leds').innerHTML = Array.from({ length: LEDS }, (_, i) => `<i class="${i >= 14 ? 'o' : i >= 8 ? 'y' : ''}"></i>`).join(''); }
+function renderMeter() {
+  const level = clamp(state.mood / 100 * 0.7 + surge * 0.3, 0, 1);
+  const lit = Math.round(level * LEDS);
+  [...$('#leds').children].forEach((e, i) => e.classList.toggle('on', i < lit));
+  const w = moodWord(state.mood); $('#mlabel').textContent = w;
+  $('#leds').setAttribute('aria-label', 'Crowd mood: ' + w);
+  document.documentElement.style.setProperty('--heat', (state.mood / 100).toFixed(2));
+}
+function doSurge(level) {
+  surge = Math.max(surge, level); cancelAnimationFrame(surgeRaf);
+  const tick = () => { surge *= 0.94; renderMeter(); if (surge > 0.03) surgeRaf = requestAnimationFrame(tick); else { surge = 0; renderMeter(); } };
+  surgeRaf = requestAnimationFrame(tick);
+}
+function setMood(d) { state.mood = clamp(state.mood + d, 0, 100); renderMeter(); }
+function setMode(m) {
+  state.mode = m; $('#btnPause').disabled = !(m === 'performing' || state.paused); $('#btnSkip').disabled = m !== 'performing';
+  $('#btnEncore').hidden = !state.encoreReady; document.body.dataset.mode = m;
+}
+function renderChips() { document.querySelectorAll('#setChips .chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.set === state.setId))); }
+
+/* ============================ AUDIO (WebAudio synthesis) ============================ */
+const Au = {
+  ctx: null, master: null, noise: null,
+  init() {
+    if (T.silent) return;
+    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    this.ctx = new AC(); const c = this.ctx;
+    this.master = c.createGain(); const comp = c.createDynamicsCompressor();
+    this.master.connect(comp); comp.connect(c.destination); this.applyVol();
+    const len = c.sampleRate * 3, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    this.noise = buf;
+  },
+  applyVol() { if (this.master) this.master.gain.value = state.muted ? 0 : state.vol; },
+  src(loop) { const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = !!loop; return s; },
+  env(g, t, a, hold, rel, peak) { g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(peak, t + a); g.gain.setValueAtTime(peak, t + a + hold); g.gain.exponentialRampToValueAtTime(0.0001, t + a + hold + rel); },
+  voiced(t, f, d, amp, f1 = 700, f2 = 1250) {
+    const c = this.ctx, o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.82, t + d);
+    const g = c.createGain(); this.env(g, t, 0.012, d * 0.3, d * 0.7, amp);
+    [f1, f2].forEach(ff => { const b = c.createBiquadFilter(); b.type = 'bandpass'; b.frequency.value = ff; b.Q.value = 3; o.connect(b); b.connect(g); });
+    g.connect(this.master); o.start(t); o.stop(t + d + 0.05);
+    const n = this.src(false), nb = c.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = 2400; nb.Q.value = 1; const ng = c.createGain(); this.env(ng, t, 0.01, d * 0.2, d * 0.6, amp * 0.5);
+    n.connect(nb); nb.connect(ng); ng.connect(this.master); n.start(t, Math.random() * 2); n.stop(t + d);
+  },
+  laugh(level, dur) {
+    if (!this.ctx) return; const c = this.ctx, t0 = c.currentTime + 0.03;
+    const n = this.src(true), bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1000 + Math.random() * 400; bp.Q.value = 0.6;
+    const ha = c.createGain(); ha.gain.value = 0.55; const lfo = c.createOscillator(); lfo.frequency.value = 5.5 + Math.random() * 2; const ld = c.createGain(); ld.gain.value = 0.4; lfo.connect(ld); ld.connect(ha.gain);
+    const g = c.createGain(); this.env(g, t0, dur * 0.25, dur * 0.3, dur * 0.45, level * 0.22);
+    n.connect(bp); bp.connect(ha); ha.connect(g); g.connect(this.master); n.start(t0, Math.random() * 2); lfo.start(t0); n.stop(t0 + dur + 0.2); lfo.stop(t0 + dur + 0.2);
+    const voices = Math.round(5 + level * 13);
+    for (let i = 0; i < voices; i++) {
+      const st = t0 + Math.random() * dur * 0.75, hs = 2 + Math.floor(Math.random() * 4), f0 = 170 + Math.random() * 260, gap = 0.1 + Math.random() * 0.06;
+      for (let j = 0; j < hs; j++) this.voiced(st + j * gap, f0 * (1 - j * 0.05), 0.09, level * 0.055, 600 + Math.random() * 200, 1100 + Math.random() * 300);
+    }
+  },
+  chuckle(level) { if (!this.ctx) return; const t = this.ctx.currentTime + 0.03; for (let i = 0; i < 4; i++) this.voiced(t + i * 0.14, 200 * (1 - i * 0.06), 0.1, level * 0.09); },
+  applause(level, dur) {
+    if (!this.ctx) return; const c = this.ctx, t0 = c.currentTime + 0.03, n = Math.round(dur * (90 + level * 120));
+    for (let i = 0; i < n; i++) {
+      const t = t0 + Math.random() * dur, sw = Math.pow(Math.sin(Math.PI * (t - t0) / dur), 0.6), s = this.src(false), b = c.createBiquadFilter(); b.type = 'bandpass'; b.frequency.value = 1500 + Math.random() * 3000; b.Q.value = 0.9;
+      const g = c.createGain(), d = 0.012 + Math.random() * 0.025; g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(level * 0.1 * sw, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      s.connect(b); b.connect(g); g.connect(this.master); s.start(t, Math.random() * 2.5); s.stop(t + d + 0.01);
+    }
+  },
+  ooh(level, dur) {
+    if (!this.ctx) return; const c = this.ctx, t0 = c.currentTime + 0.03;
+    for (let i = 0; i < 5; i++) {
+      const f0 = 200 + Math.random() * 120, o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f0 * 0.7, t0 + dur);
+      const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 5 + Math.random(); vg.gain.value = 5; vib.connect(vg); vg.connect(o.frequency);
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; const f1 = c.createBiquadFilter(); f1.type = 'peaking'; f1.frequency.value = 320; f1.gain.value = 10; f1.Q.value = 3;
+      const g = c.createGain(); this.env(g, t0 + Math.random() * 0.15, dur * 0.3, dur * 0.2, dur * 0.5, level * 0.06);
+      o.connect(lp); lp.connect(f1); f1.connect(g); g.connect(this.master); o.start(t0); vib.start(t0); o.stop(t0 + dur + 0.3); vib.stop(t0 + dur + 0.3);
+    }
+  },
+  rim() {
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime + 0.02;
+    const hit = (tt, f, kick) => {
+      const o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f, tt); o.frequency.exponentialRampToValueAtTime(f * 0.4, tt + 0.14); const g = c.createGain(); g.gain.setValueAtTime(kick, tt); g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.16); o.connect(g); g.connect(this.master); o.start(tt); o.stop(tt + 0.2);
+      const n = this.src(false), b = c.createBiquadFilter(); b.type = 'bandpass'; b.frequency.value = 1800; const ng = c.createGain(); ng.gain.setValueAtTime(0.4, tt); ng.gain.exponentialRampToValueAtTime(0.0001, tt + 0.12); n.connect(b); b.connect(ng); ng.connect(this.master); n.start(tt, 0.3); n.stop(tt + 0.14);
+    };
+    hit(t, 220, 0.5); hit(t + 0.17, 140, 0.7);
+    const cy = this.src(false), hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 5500; const cg = c.createGain(); cg.gain.setValueAtTime(0.28, t + 0.5); cg.gain.exponentialRampToValueAtTime(0.0001, t + 1.4); cy.connect(hp); hp.connect(cg); cg.connect(this.master); cy.start(t + 0.5, 1); cy.stop(t + 1.45);
+  },
+  crickets(dur) {
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime + 0.05, o = c.createOscillator(); o.frequency.value = 4300; const g = c.createGain(); g.gain.value = 0;
+    const lfo = c.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 13; const lg = c.createGain(); lg.gain.value = 0.02; lfo.connect(lg); lg.connect(g.gain);
+    const gate = c.createOscillator(); gate.type = 'square'; gate.frequency.value = 1.6; const gg = c.createGain(); gg.gain.value = 0.015; gate.connect(gg); gg.connect(g.gain);
+    o.connect(g); g.connect(this.master); [o, lfo, gate].forEach(x => { x.start(t); x.stop(t + dur); });
+  },
+  play(kind, level, dur) {
+    if (!this.ctx) return;
+    switch (kind) {
+      case 'laugh': this.laugh(level, dur); break;
+      case 'big': this.laugh(Math.min(1, level + 0.15), dur); setTimeout(() => this.applause(level, 2.2), 700); break;
+      case 'chuckle': this.chuckle(level); break;
+      case 'groan': this.ooh(level, dur); setTimeout(() => this.laugh(level * 0.5, 1.4), dur * 650); break;
+      case 'ooh': this.ooh(level, dur); break;
+      case 'applause': case 'cheer': this.applause(level, dur); break;
+      case 'crickets': this.crickets(dur); break;
+      case 'rim': this.rim(); break;
+    }
+  }
+};
+
+/* ============================ TIMING / SPEECH ============================ */
+function newAct() { cur = { cancelled: false, wake: new Set() }; return cur; }
+function abortCurrent() { cur.cancelled = true; try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {} [...cur.wake].forEach(f => f()); cur.wake.clear(); }
+function sleepc(ms) { return new Promise(res => { const my = cur; let id; const f = () => { clearTimeout(id); my.wake.delete(f); res(); }; id = setTimeout(f, ms); my.wake.add(f); }); }
+async function wait(ms) {
+  let rem = ms * T.scale; const my = cur;
+  while (rem > 0 && !my.cancelled) {
+    if (state.paused) { await new Promise(r => { pauseWaiters.push(r); my.wake.add(r); }); continue; }
+    const s = Math.min(rem, 40), a = performance.now(); await sleepc(s); rem -= performance.now() - a;
+  }
+}
+const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+let voices = [];
+function voiceScore(v) {
+  const n = (v.name + ' ' + v.voiceURI).toLowerCase(); let s = 0;
+  if (!/^en/i.test(v.lang)) return -100;
+  if (/natural/.test(n)) s += 60; if (/online/.test(n)) s += 35; if (/neural/.test(n)) s += 35;
+  if (/(aria|jenny|guy|davis|andrew|emma|brian|ava|samantha|daniel|google)/.test(n)) s += 10;
+  if (/microsoft/.test(n)) s += 8; if (/en-us/i.test(v.lang)) s += 5; if (/en-gb|en-au/i.test(v.lang)) s += 3;
+  if (/espeak|compact|novelty|bad news|zarvox|whisper|trinoids|bells|cellos|boing/.test(n)) s -= 40;
+  if (v.localService === false) s += 5;
+  return s;
+}
+function loadVoices() {
+  if (!synth) return;
+  const list = synth.getVoices(); if (!list.length) return;
+  voices = list.filter(v => /^en/i.test(v.lang)).sort((a, b) => voiceScore(b) - voiceScore(a));
+  if (!voices.length) voices = list.slice();
+  const sel = $('#voiceSel'); sel.innerHTML = '';
+  voices.forEach(v => { const o = document.createElement('option'); o.value = v.voiceURI; o.textContent = v.name + ' (' + v.lang + ')'; sel.appendChild(o); });
+  const saved = voices.find(v => v.voiceURI === state.voiceURI);
+  state.voice = saved || voices[0]; state.voiceURI = state.voice ? state.voice.voiceURI : ''; sel.value = state.voiceURI;
+}
+if (synth) { loadVoices(); synth.addEventListener && synth.addEventListener('voiceschanged', loadVoices); let tries = 0; const iv = setInterval(() => { if (voices.length || ++tries > 12) clearInterval(iv); else loadVoices(); }, 250); }
+const canSpeak = () => !!(synth && !T.silent && typeof SpeechSynthesisUtterance !== 'undefined');
+const estMs = (text, rate) => Math.round(text.split(/\s+/).length * (60000 / 165) / clamp(rate || 1, 0.5, 2) + 220 + (text.match(/[,;:.!?]/g) || []).length * 120);
+function speakNow(step) {
+  const my = cur;
+  return new Promise(res => {
+    const u = new SpeechSynthesisUtterance(step.text);
+    if (state.voice) { u.voice = state.voice; u.lang = state.voice.lang; }
+    u.rate = clamp(step.rate, 0.5, 2); u.pitch = clamp(step.pitch, 0, 2); u.volume = state.muted ? 0 : step.vol;
+    let done = false, run = 0; const est = estMs(step.text, u.rate);
+    const wd = setInterval(() => {                       // Chrome/Edge drop long utterances after ~15s and never fire onend: watchdog + keep-alive
+      if (state.paused || done) return; run += 250;
+      if (run % 8000 === 0 && synth.speaking) { try { synth.resume(); } catch (e) {} }
+      if (run > est * 2.5 + 5000) { try { synth.cancel(); } catch (e) {} fin(); }
+    }, 250);
+    function fin() { if (done) return; done = true; clearInterval(wd); my.wake.delete(fin); res(); }
+    u.onend = fin; u.onerror = fin; my.wake.add(fin);
+    try { synth.speak(u); } catch (e) { fin(); }
+  });
+}
+async function say(step) {
+  caption(step.text, step.role); comic.classList.add('talking');
+  events.push({ k: 'say', role: step.role, text: step.text, rate: step.rate, pitch: step.pitch, t: performance.now() });
+  if (canSpeak() && state.voice !== undefined) await speakNow(step); else await wait(estMs(step.text, step.rate));
+  comic.classList.remove('talking');
+}
+const WORDS = { laugh: ['HA HA HA!', 'HAHAHA', 'HEH HEH HEH', 'HAAA!'], big: ['HAHAHAHA!', 'WOOOO!', 'HA HA HA!'], chuckle: ['heh', 'hehe', 'heh heh'], groan: ['OOOOH', 'OOOOOH...', 'OOOH!'], crickets: ['*crickets*'], applause: ['CLAP CLAP CLAP'], cheer: ['WOOO!'] };
+function crowdReact(kind, level, dur) {
+  doSurge(level);
+  const cls = kind === 'groan' ? 'groan' : (kind === 'applause' || kind === 'cheer') ? 'clap' : kind === 'crickets' ? '' : 'laugh';
+  crowdClass(cls, dur * 1000 * Math.max(T.scale, 0.05));
+  (WORDS[kind] ? [pick(WORDS[kind]), Math.random() < 0.6 ? pick(WORDS[kind]) : null] : []).filter(Boolean).forEach(w => pop(w, kind === 'groan' ? 'groanw' : ''));
+  if (kind === 'big') setTimeout(() => { crowdClass('clap', 2200); pop('CLAP CLAP CLAP'); }, 700 * T.scale);
+  if (kind === 'laugh' || kind === 'big' || kind === 'chuckle') { setGesture('laugh', 1200 * Math.max(T.scale, 0.1)); }
+  Au.play(kind, level, dur);
+}
+async function exec(st) {
+  const ev = { k: st.k, t: performance.now() };
+  switch (st.k) {
+    case 'gesture': setGesture(st.g, st.g === 'beat' ? 0 : 3200); events.push({ ...ev, g: st.g }); break;
+    case 'say': await say(st); break;
+    case 'wait': { const a = performance.now(); await wait(st.ms); events.push({ ...ev, ms: st.ms, label: st.label, real: performance.now() - a }); break; }
+    case 'sfx': events.push({ ...ev, kind: st.kind }); Au.play(st.kind, 0.8, 1); break;
+    case 'react': events.push({ ...ev, kind: st.kind, level: st.level }); crowdReact(st.kind, st.level, st.dur || 2); if (st.moodD) setMood(st.moodD); await wait(st.hold ?? 600); break;
+    case 'mood': setMood(st.d); break;
+  }
+}
+
+/* ============================ ACTS / PUMP ============================ */
+function stepsForAct(a) {
+  const o = { rate: state.rate, pitch: state.pitch };
+  if (a.type === 'joke') { state.last = a.joke; state.seen.add(a.joke.id); return buildJokeSteps(a.joke, state.mood, o); }
+  if (a.type === 'bridge') { const pool = state.mood >= 65 ? BRIDGES.hot : state.mood <= 35 ? BRIDGES.cold : BRIDGES.any; return buildLinesSteps([{ t: pick(pool), g: 'tilt' }], state.mood, o); }
+  if (a.type === 'lines') return buildLinesSteps(a.lines, state.mood, { ...o, beatFirst: a.beatFirst });
+  if (a.type === 'gap') return [{ k: 'wait', ms: a.ms, label: 'gap' }];
+  return [];
+}
+async function runAct(a) {
+  const my = newAct(); events.push({ k: 'act', type: a.type, id: a.joke ? a.joke.id : a.name || '', t: performance.now() });
+  for (const st of stepsForAct(a)) { if (my.cancelled) break; await exec(st); }
+  if (a.after && !my.hard) a.after();
+  if (a.type === 'joke' && !my.cancelled) setMood((55 - state.mood) * 0.14);
+}
+async function pump() {
+  if (busy) return; busy = true; let done; pumpDone = new Promise(r => (done = r)); setMode('performing');
+  while (acts.length) { const a = acts.shift(); try { await runAct(a); } catch (e) { events.push({ k: 'error', msg: String(e) }); } }
+  busy = false; setGesture(''); comic.classList.remove('talking'); setMode(state.encoreReady ? 'finished' : 'idle'); events.push({ k: 'idle', t: performance.now() }); done();
+}
+function queueFront(list) {
+  if (acts.filter(x => x.inter).length >= 3) return false;
+  list.slice().reverse().forEach(a => { a.inter = true; acts.unshift(a); });
+  if (!busy) pump(); else if (state.paused) toast('Sam will get to it after the pause');
+  return true;
+}
+function buildSetActs(set) {
+  let order = shuffle(set.jokes);
+  if (set.id === 'open') order = [set.jokes[0], ...shuffle(set.jokes.slice(1, -1)), set.jokes[set.jokes.length - 1]];
+  const list = [{ type: 'lines', name: 'opener', lines: set.opener.map((t, i) => ({ t, g: i ? 'shrug' : 'bow' })) }, { type: 'gap', ms: 500, name: 'gap' }];
+  order.forEach((j, i) => { list.push({ type: 'joke', joke: j }); if (i < order.length - 1 && (i % 3 === 2 || Math.random() < 0.25)) list.push({ type: 'bridge', name: 'bridge' }); });
+  list.push({ type: 'lines', name: 'closer', lines: set.closer.map(t => ({ t, g: 'bow' })), after: () => { state.encoreReady = true; setMode('finished'); crowdReact('applause', 1, 3.2); pop('ENCORE? ENCORE?'); toast('Encore unlocked'); } });
+  return list;
+}
+async function startSet(id) {
+  const set = SETS.find(s => s.id === id) || SETS[0];
+  $('#intro').hidden = true; Au.init();
+  acts.length = 0; cur.hard = true; abortCurrent(); state.paused = false; pauseWaiters.splice(0).forEach(f => f()); $('#btnPause').textContent = 'Pause';
+  await pumpDone;
+  state.setId = set.id; state.encoreReady = false; $('#btnEncore').hidden = true; renderChips();
+  acts = buildSetActs(set); events.push({ k: 'set', id: set.id }); pump();
+}
+function nextJoke() {
+  const queued = new Set(acts.filter(a => a.joke).map(a => a.joke.id));
+  let pool = ALL_JOKES.filter(j => !state.seen.has(j.id) && !queued.has(j.id));
+  if (!pool.length) { state.seen.clear(); pool = ALL_JOKES.filter(j => !queued.has(j.id)); }
+  return pick(pool);
+}
+function tellOne(intro = true, forced) {
+  $('#intro').hidden = true; Au.init();
+  const joke = forced || nextJoke(); const list = [];
+  if (intro) list.push({ type: 'lines', lines: [{ t: pick(ONE_INTROS), g: 'grab' }] });
+  list.push({ type: 'joke', joke });
+  queueFront(list);
+}
+function encore() {
+  if (!state.encoreReady) return; Au.init(); state.encoreReady = false; $('#btnEncore').hidden = true;
+  const joke = nextJoke();
+  acts = [{ type: 'lines', lines: [{ t: pick(ENCORE_INTROS), g: 'bow' }] }, { type: 'joke', joke }, { type: 'lines', name: 'encore-out', lines: [{ t: pick(ENCORE_OUT), g: 'bow' }], after: () => { state.encoreReady = true; setMode('finished'); crowdReact('applause', 1, 3.2); } }];
+  events.push({ k: 'encore' }); pump();
+}
+function heckle(text, source) {
+  $('#intro').hidden = true; Au.init();
+  const shown = String(text).slice(0, 100);
+  pop(shown, 'heck'); setMood(-4); doSurge(0.3);
+  const m = matchHeckle(text); events.push({ k: 'heckle', id: m.id, text: shown, source });
+  const lines = [{ t: m.reply, g: m.g, react: { kind: 'laugh', level: clamp(0.4 + state.mood / 200, 0.3, 0.8), dur: 1.6, hold: 400, moodD: 6 } }];
+  const act = { type: 'lines', lines, beatFirst: 500, name: 'heckle-reply' };
+  if (m.joke) queueFront([act, { type: 'joke', joke: m.joke }]);
+  else if (m.action === 'joke') queueFront([act, { type: 'joke', joke: nextJoke() }]);
+  else queueFront([act]);
+  return m;
+}
+function crowdBtn(kind) {
+  $('#intro').hidden = true; Au.init();
+  if (kind === 'laugh') { setMood(12); crowdReact('laugh', 0.9, 2.4); queueFront([{ type: 'lines', lines: [{ t: pick(LAUGH_REPLIES), g: 'bow' }] }]); }
+  else if (kind === 'groan') { setMood(-8); crowdReact('groan', 0.9, 1.8); queueFront([{ type: 'lines', lines: [{ t: pick(GROAN_REPLIES), g: 'tilt', react: { kind: 'chuckle', level: 0.5, dur: 1, hold: 300, moodD: 2 } }] }]); }
+  else heckle(pick(HECKLES), 'button');
+}
+function togglePause() {
+  if (!(state.mode === 'performing' || state.paused)) return;
+  state.paused = !state.paused; $('#btnPause').textContent = state.paused ? 'Resume' : 'Pause';
+  try { if (synth) state.paused ? synth.pause() : synth.resume(); } catch (e) {}
+  if (!state.paused) pauseWaiters.splice(0).forEach(f => f());
+  toast(state.paused ? 'Paused. Sam is holding the mic.' : 'Back on.'); setMode(state.mode);
+}
+async function share() {
+  const j = state.last || pick(ALL_JOKES); const text = `${j.s} ${j.p}\n- Sudo Sam, Zero-Day Standup`;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+  if (!ok) { try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); } catch (e) {} }
+  toast(ok ? (state.last ? 'Copied: your favourite joke' : 'Copied one to get you started') : 'Could not copy here. Select the caption text instead.');
+  return text;
+}
+
+/* ============================ WIRING ============================ */
+function buildCrowd() {
+  let h = '';
+  [{ n: 30, y: 150, s: 0.82, c: '#1f0c14' }, { n: 24, y: 192, s: 1, c: '#07030a' }].forEach(row => {
+    for (let i = 0; i < row.n; i++) {
+      const x = (i + 0.5) * (1600 / row.n) + (Math.random() - 0.5) * 34, r = (20 + Math.random() * 9) * row.s, y = row.y + (Math.random() - 0.5) * 16, d = (Math.random() * 2.6).toFixed(2);
+      const extra = Math.random() < 0.18 ? `<rect x="${(x + r * 1.1).toFixed(0)}" y="${(y - r * 1.5).toFixed(0)}" width="9" height="15" rx="2" fill="#19f0d0" opacity=".85"/>` : Math.random() < 0.2 ? `<circle cx="${x.toFixed(0)}" cy="${(y - r * 1.05).toFixed(0)}" r="${(r * 0.7).toFixed(0)}" fill="${row.c}"/>` : '';
+      h += `<g class="p" style="--d:${d}s;transform-origin:${x.toFixed(0)}px ${y + 70}px"><path d="M${(x - r * 2).toFixed(0)} ${y + 90} Q${(x - r * 2).toFixed(0)} ${(y + r * 1.25).toFixed(0)} ${x.toFixed(0)} ${(y + r * 1.25).toFixed(0)} Q${(x + r * 2).toFixed(0)} ${(y + r * 1.25).toFixed(0)} ${(x + r * 2).toFixed(0)} ${y + 90}Z" fill="${row.c}"/><circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(0)}" fill="${row.c}"/><path d="M${(x - r).toFixed(0)} ${y.toFixed(0)} A${r.toFixed(0)} ${r.toFixed(0)} 0 0 1 ${(x + r).toFixed(0)} ${y.toFixed(0)}" fill="none" stroke="#ffd23f" stroke-opacity=".2" stroke-width="2"/>${extra}</g>`;
+    }
+  });
+  $('#crowdSvg').innerHTML = h;
+}
+function wire() {
+  $('#btnStart').addEventListener('click', () => startSet('tight'));
+  document.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => startSet(b.dataset.set)));
+  $('#btnOne').addEventListener('click', () => tellOne(true));
+  $('#btnPause').addEventListener('click', togglePause);
+  $('#btnSkip').addEventListener('click', () => { if (state.mode === 'performing') { setGesture(''); abortCurrent(); } });
+  $('#btnEncore').addEventListener('click', encore);
+  $('#btnLaugh').addEventListener('click', () => crowdBtn('laugh'));
+  $('#btnGroan').addEventListener('click', () => crowdBtn('groan'));
+  $('#btnHeckle').addEventListener('click', () => crowdBtn('heckle'));
+  $('#btnShare').addEventListener('click', share);
+  $('#heckleForm').addEventListener('submit', e => {
+    e.preventDefault(); const inp = $('#heckleInput'), v = inp.value.trim();
+    if (!v) { inp.value = pick(HECKLES); inp.focus(); inp.select(); toast('Try this one. Press Heckle to send.'); return; }
+    inp.value = ''; heckle(v, 'typed');
+  });
+  const mute = $('#btnMute'); mute.setAttribute('aria-pressed', String(state.muted)); mute.textContent = state.muted ? 'Unmute' : 'Mute';
+  mute.addEventListener('click', () => { state.muted = !state.muted; mute.setAttribute('aria-pressed', String(state.muted)); mute.textContent = state.muted ? 'Unmute' : 'Mute'; Au.applyVol(); persist(); toast(state.muted ? 'Muted. Captions only.' : 'Sound on.'); });
+  const vb = $('#btnVoice'), vp = $('#voicePanel');
+  vb.addEventListener('click', () => { const o = vp.classList.toggle('open'); vb.setAttribute('aria-expanded', String(o)); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && vp.classList.contains('open')) { vp.classList.remove('open'); vb.setAttribute('aria-expanded', 'false'); vb.focus(); } });
+  const bind = (id, key, out, fmt) => { const el = $(id); el.value = state[key]; $(out).textContent = fmt(state[key]); el.addEventListener('input', () => { state[key] = +el.value; $(out).textContent = fmt(state[key]); if (key === 'vol') Au.applyVol(); persist(); }); };
+  bind('#rate', 'rate', '#rateO', v => (+v).toFixed(2)); bind('#pitch', 'pitch', '#pitchO', v => (+v).toFixed(2)); bind('#vol', 'vol', '#volO', v => Math.round(v * 100));
+  $('#voiceSel').addEventListener('change', e => { state.voice = voices.find(v => v.voiceURI === e.target.value) || state.voice; state.voiceURI = e.target.value; persist(); });
+  $('#btnTest').addEventListener('click', () => {
+    Au.init(); newAct(); const st = { text: "Is this thing on? Tap tap. Hello, hello.", rate: state.rate, pitch: state.pitch, vol: 1, role: 'setup' };
+    if (canSpeak()) { synth.cancel(); speakNow(st); } caption(st.text, 'setup'); Au.play('chuckle', 0.7); setTimeout(() => caption(''), 2500);
+  });
+}
+buildCrowd(); buildLeds(); renderMeter(); wire(); renderChips(); setMode('idle');
+
+/* ============================ TEST HOOKS ============================ */
+const HECKLE_CASES = [
+  ['this is boring', 'boring'], ['LOUDER!', 'louder'], ['speak up', 'louder'], ['I am so tired', 'tired'], ['go to sleep', 'tired'],
+  ['do the one about passwords', 'request'], ['tell us a joke about the cloud', 'request'], ['do the one about quantum llamas', 'request-miss'],
+  ['what about my password', 'password'], ['is this AI generated?', 'ai'], ['found a bug', 'bug'], ['cloud!', 'cloud'], ['free wifi?', 'wifi'],
+  ['this could have been an email', 'meeting'], ['meeting time', 'meeting'], ['coffee please', 'coffee'], ['the prince emailed me', 'phish'],
+  ['update later', 'update'], ['zero-day!', 'hack'], ['captcha', 'captcha'], ['3am pager', 'oncall'], ['hi sam', 'hello'], ['you suck', 'hostile'],
+  ['great set', 'compliment'], ['one more', 'more'], ['zzzzz', 'generic'], ['', 'generic'], ['asdfghjkl', 'generic'], ['my dad says hi', 'family']
+];
+window.ZDS = { sets: SETS, jokes: ALL_JOKES, state, events, T, matchHeckle, findJokeByTopic, buildJokeSteps, buildLinesSteps, chunkText, pickTag, planReaction, paceOf, voiceScore,
+  heckleCases: HECKLE_CASES, heckle, tellOne, startSet, encore, share, acts: () => acts, setTiming(o) { Object.assign(T, o); }, loadVoices };
+})();
+</script>
+</body>
+</html>
